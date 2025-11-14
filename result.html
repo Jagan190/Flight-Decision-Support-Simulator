@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Assessment Result</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  </head>
+  <body class="bg-light">
+    <div class="container py-4">
+      <h1>Assessment Result</h1>
+
+      <div class="card my-3">
+        <div class="card-body">
+          <h5 class="card-title">Recommendation: <strong>{{ assessment['recommendation'] }}</strong></h5>
+          <p>Aggregate risk score: <strong>{{ assessment['aggregate_risk_score'] }}</strong></p>
+          <hr>
+          <h6>Key numbers</h6>
+          <ul>
+            <li>Density altitude (dest): {{ assessment['density_altitude_destination_ft'] }} ft</li>
+            <li>Required landing est: {{ assessment['required_landing_m_est'] }} m</li>
+            <li>Destination runway: {{ assessment['destination_runway_length_m'] }} m</li>
+            <li>Weather risk: {{ assessment['destination_weather_risk'] }}</li>
+            <li>Fuel endurance: {{ assessment['endurance_hr'] }} hr</li>
+            <li>Fuel margin over reserve: {{ assessment['fuel_margin_hr_over_reserve'] }} hr</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card my-3">
+        <div class="card-body">
+          <h5 class="card-title">METAR Lookup</h5>
+          {% if metar_result %}
+            {% if metar_result.error %}
+              <div class="alert alert-warning">METAR: {{ metar_result.error }}</div>
+            {% else %}
+              <div><strong>ICAO:</strong> {{ metar_result.icao }}</div>
+              <div><strong>Observed:</strong> {{ metar_result.observation_time }}</div>
+              <div class="mt-2"><strong>Raw METAR:</strong> <code>{{ metar_result.raw_text }}</code></div>
+
+              {% if metar_audio_file %}
+                <div class="mt-3">
+                  <h6>Raw METAR Audio</h6>
+                  <audio controls>
+                    <source src="{{ url_for('static', filename=metar_audio_file) }}" type="audio/mp3">
+                    Your browser does not support audio playback.
+                  </audio>
+                </div>
+              {% endif %}
+
+              {% if metar_explanation %}
+                <hr>
+                <h6>Decoded (ATIS-style)</h6>
+                <div class="card p-2 mb-2"><pre style="white-space:pre-wrap;">{{ metar_explanation }}</pre></div>
+                {% if metar_decoded_audio_file %}
+                  <div class="mt-2">
+                    <h6>Decoded METAR Audio</h6>
+                    <audio controls>
+                      <source src="{{ url_for('static', filename=metar_decoded_audio_file) }}" type="audio/mp3">
+                      Your browser does not support audio playback.
+                    </audio>
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% endif %}
+          {% else %}
+            <div class="text-muted">No METAR lookup performed (provide Destination ICAO or paste METAR manually).</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card my-3">
+        <div class="card-body">
+          <h5 class="card-title">Audio Briefing</h5>
+          {% if audio_file %}
+            <audio controls>
+              <source src="{{ url_for('static', filename=audio_file) }}" type="audio/mp3">
+              Your browser does not support audio playback.
+            </audio>
+            <p class="text-muted small mt-2">Briefing file saved in <code>static/</code></p>
+          {% else %}
+            <div class="alert alert-warning">Audio briefing not available (gTTS not installed or generation failed).</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <a href="{{ url_for('index') }}" class="btn btn-secondary">Back</a>
+      <p class="mt-3 text-muted">Demo only. Validate with official charts before any flight.</p>
+    </div>
+  </body>
+</html>
